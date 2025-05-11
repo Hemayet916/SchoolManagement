@@ -1,0 +1,1237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>School Management - Python Code</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <h1>School Management - Python Code</h1>
+    <pre><code class="python">
+        #SCHOOL MANAGEMENT
+
+        print("------------------------------------------------------------------------------------------------------------------")
+        print("                                                   SCHOOL MANAGEMENET                                             ")
+        print("------------------------------------------------------------------------------------------------------------------")
+        
+        #IMPORT TABULATE
+        
+        from tabulate import tabulate
+        
+        #CREATING DATABASE
+        
+        import mysql.connector as msq
+        con=msq.connect(host='localhost',user='root',password='he@9#ma1@#yet1')
+        if con.is_connected():
+            print('Connection is successful !')
+            print('')
+            cur=con.cursor()
+            cur.execute('create database if not exists school')
+            cur.execute("use school")
+            
+            #CREATING TABLE
+            
+            cur.execute("create table if not exists student (Name varchar(30),Gr_no int primary key,Class varchar(8),Transport varchar(10),DOB DATE,CPR varchar(15),Phone_number bigint)")
+            cur.execute("create table if not exists stu_attendance(Gr_no int,Date varchar(10),Status varchar(10))")
+            cur.execute("create table if not exists stu_fee(Gr_no int,Month varchar(20),Transport_fee DECIMAL (7,2),School_fee DECIMAL (7,2),Total_fee DECIMAL (7,2))")
+            cur.execute("create table if not exists mainsub_report(Gr_no int,Physics DECIMAL(5,2),Biology DECIMAL (5,2),Chemistry DECIMAL(5,2),Computer_Science DECIMAL(5,2),English DECIMAL(5,2),Total_marks DECIMAL(5,2),Average_marks DECIMAL(5,2),Grade varchar(2))")
+        
+        else:
+            print('Error,check')
+           
+        #SOURCE CODE
+        
+        #ADD STUDENT DETAILS
+        
+        def add_student():              
+            cur=con.cursor()
+            print('')
+            while True:
+                Gr=int(input("Enter your Gr No:"))
+                print('')
+                g=(Gr,)
+                s="select * from student where Gr_no=%s"
+                cur.execute(s,g)
+                res=cur.fetchall()
+                if cur.rowcount!=0:
+                    print('This Gr_no have been added before')
+                    break
+                else:
+                    name=input("Enter your name:")
+                    print('')
+                    t=input("Enter your transport [ Private/Bus-___]:")
+                    print('')
+                    c=input("Enter your class:")
+                    print('')
+                    Ad=input("Enter your DOB [yyyy-mm-dd] :")
+                    print('')
+                    cpr=input("Enter the CPR number:")
+                    print('')
+                    ph=int(input("Enter phone number:"))
+                    print('')
+                    tu=(name,Gr,c,t,Ad,cpr,ph)
+                    q='insert into student values (%s,%s,%s,%s,%s,%s,%s)'
+                    cur.execute(q,tu)
+                    con.commit()
+                    print("Data is entered")
+                    ch=input("Do you wish to continue adding student detail's. Enter [Y/y] for yes and [N/n] for no:")
+                    if ch=='Y' or ch=='y':
+                        add_student()
+                    elif ch=='N' or ch=='n':
+                        main()
+                    else:
+                        print('Envalid choice!!')
+                        main()
+            main()
+        
+        #REMOVE STUDENT DETAILS
+        
+        def remove_student():           
+            cur=con.cursor()
+            print('')
+            gr=int(input("Enter the Gr.no. to be deleted: "))
+            print('')
+            gr=(gr,)
+            s="select * from student where Gr_no=%s"
+            cur.execute(s,gr)
+            res=cur.fetchall()
+            if cur.rowcount==0:
+                print('This Gr.no have not been added before')
+                main()
+            else:
+                qu="DELETE from stu_attendance where Gr_no=%s"
+                cur.execute(qu,gr)
+                con.commit()
+                q="delete from mainsub_report where Gr_no=%s"
+                cur.execute(q,gr)
+                con.commit()
+                qs="delete from student where Gr_no=%s"
+                cur.execute(qs,gr)
+                con.commit()
+                ch=input("Do you wish to continue removing student detail's. Enter [Y/y] for yes and [N/n] for no:")
+                if ch=='Y' or ch=='y':
+                    remove_student()
+                elif ch=='N' or ch=='n':
+                    main()
+                else:
+                    print('Invalid choice!!')
+                    main()
+            
+        #UPDATE STUDENT NAME
+        
+        def stud_name():
+            print('')
+            try:
+                gr=int(input("Enter the Gr.no: "))
+                print('')
+                pre_name=input("Enter the student's name to be changed:")
+                print('')
+                new_name=input("Enter the student's name to be updated:")
+                print('')
+                cur=con.cursor()
+                qu="update student set Name=%s where Name=%s and Gr_no=%s"
+                t=(new_name,pre_name,gr)
+                cur.execute(qu,t)
+                con.commit()
+                ch=input("Do you wish to continue updating student's name. Enter [Y/y] for yes and [N/n] for no:")
+                if ch=='Y' or ch=='y':
+                    stud_name()
+                elif ch=='N' or ch=='n':
+                    main()
+                else:
+                    print('Invalid choice!!')
+                    main()
+            except:
+                print('Error')
+            main()
+            
+        #UPDATE STUDENT CLASS
+        
+        def stud_class():
+            print('')
+            try:
+                cur=con.cursor()
+                gr=int(input("Enter the Gr.no: "))
+                print('')
+                pre_class=input("Enter the student's class to be changed:")
+                print('')
+                new_class=input("Enter the student's class to be updated:")
+                print('')
+                qu="update student set Class=%s where Class=%s and Gr_no=%s"
+                t=(new_class,pre_class,gr)
+                cur.execute(qu,t)
+                con.commit()
+                ch=input("Do you wish to continue updating student's class. Enter [Y/y] for yes and [N/n] for no:")
+                if ch=='Y' or ch=='y':
+                    stud_class()
+                elif ch=='N' or ch=='n':
+                    main()
+                else:
+                    print('Invalid choice!!')
+                    main()
+            except:
+                print('Error')
+            main()
+        
+        #UPDATE STUDENT TRANSPORTATION
+            
+        def stud_transport():
+            print('')
+            try:
+                gr=int(input("Enter the Gr.no: "))
+                print('')
+                pre_transport=input("Enter the student's transport to be changed [Bus-___/Private: ")
+                print('')
+                new_transport=input("Enter the student's transport to be updated [Bus-___/Private: ")
+                print('')
+                qu="update student set Transport=%s where Transport=%s and Gr_no=%s"
+                t=(new_transport,pre_transport,gr)
+                cur=con.cursor()
+                cur.execute(qu,t)
+                con.commit()
+                ch=input("Do you wish to continue updating student's transportation. Enter [Y/y] for yes and [N/n] for no:")
+                if ch=='Y' or ch=='y':
+                    stud_transport()
+                elif ch=='N' or ch=='n':
+                    main()
+                else:
+                    print('Invalid choice!!')
+                    main()
+            except:
+                print('Error')
+            main()
+        
+        #UPDATE STUDENT DATE OF BIRTH
+            
+        def stud_DOB():
+            print('')
+            try:
+                gr=int(input("Enter the Gr.no: "))
+                print('')
+                pre_date=input("Enter the student's DOB date to be changed [yyyy-mm-d]: ")
+                print('')
+                new_date=input("Enter the student's DOB date to be updated [yyyy-mm-dd]: ")
+                print('')
+                qu="update student set DOB=%s where DOB=%s and Gr_no=%s"
+                t=(new_date,pre_date,gr)
+                cur=con.cursor()
+                cur.execute(qu,t)
+                con.commit()
+                ch=input("Do you wish to continue updating student's DOB. Enter [Y/y] for yes and [N/n] for no:")
+                if ch=='Y' or ch=='y':
+                    stud_DOB()
+                elif ch=='N' or ch=='n':
+                    main()
+                else:
+                    print('Invalid choice!!')
+                    main()
+            except:
+                print('Error')
+            main()
+            
+        #UPDATE STUDENT CPR NUMBER
+        def stud_cpr():
+            cur=con.cursor()
+            print('')
+            try:
+                gr=int(input("Enter the Gr.no: "))
+                print('')
+                pre_cpr=input("Enter the student's CPR number to be changed:")
+                print('')
+                new_cpr=input("Enter the studnet's CPR number to be updated:")
+                print('')
+                qu="update student set CPR=%s where CPR=%s and Gr_no=%s"
+                t=(new_cpr,pre_cpr,gr)
+                cur.execute(qu,t)
+                con.commit()
+                ch=input("Do you wish to continue updating student's CPR number. Enter [Y/y] for yes and [N/n] for no:")
+                if ch=='Y' or ch=='y':
+                    stud_cpr()
+                elif ch=='N' or ch=='n':
+                    main()
+                else:
+                    print('Invalid choice!!')
+                    main()
+            except:
+                print('Error')
+            main()
+            
+        #UPDATE STUDENT PHONE NUMBER
+        
+        def stud_phonenum():
+            print('')
+            try:
+                gr=int(input("Enter the Gr.no: "))
+                print('')
+                pre_num=int(input("Enter the student's phone number to be changed:"))
+                print('')
+                new_num=int(input("Enter the student's phone number to be updated:"))
+                print('')
+                qu="update student set Phone_number=%s where Phone_number=%s and Gr_no=%s"
+                t=(new_num,pre_num,gr)
+                cur=con.cursor()
+                cur.execute(qu,t)
+                con.commit()
+                ch=input("Do you wish to continue updating student's phone number. Enter [Y/y] for yes and [N/n] for no:")
+                if ch=='Y' or ch=='y':
+                    stud_phonenum()
+                elif ch=='N' or ch=='n':
+                    main()
+                else:
+                    print('Invalid choice!!')
+                    main()
+            except:
+                print('Error')
+            main()
+            
+        #UPDATE STUDENT ATTENDANCE
+        
+        def update_studattend():
+            print('')
+            from datetime import date
+            try:
+                no=int(input("Enter student's Gr.number:"))
+                print('')
+                status=input("Enter the status [Absent/Present]:")
+                print('')
+                t=(status,no)
+                q='update stu_attendance set status=%s where Gr_no=%s'
+                cur=con.cursor()
+                cur.execute(q,t)
+                con.commit()
+                print("Student's attendance is updated")
+                print('')
+                ch=input("Do you wish to continue updating student's attendance. Enter [Y/y] for yes and [N/n] for no:")
+                if ch=='Y' or ch=='y':
+                    update_studattend()
+                elif ch=='N' or ch=='n':
+                    main()
+                else:
+                    print('Invalid choice!!')
+                    main()
+            except:
+                print('Error')
+            main()
+            
+        #UPDATE STUDENT FEE
+        
+        def update_fee():
+            print('')
+            print('1.Month\n2.School fee\n3.Transport fee\n4.Main Menu')
+            print('')
+            choice=int(input("Enter a choice:"))
+            cur=con.cursor()
+            try:
+                no=int(input("Enter the Gr_no:"))
+                print('')
+                qu="select * from stu_fee where Gr_no=%s"
+                t=(no,)
+                cur.execute(qu,t)
+                res=cur.fetchall()
+                if cur.rowcount==0:
+                    print("The student detail's of the Gr.no",no,"is not entered")
+                    main()
+                else:
+                    def month(no):
+                        month=input("Enter the month to updated to:")
+                        print('')
+                        t=(month,no)
+                        q1="update stu_fee set Month=%s where Gr_no=%s"
+                        cur.execute(q1,t)
+                        con.commit()
+                    def school_fee(no):
+                        sch_fee=float(input("Enter the school fee to be updated to [xxx.xx]:"))
+                        print('')
+                        t=(sch_fee,no)
+                        q2="update stu_fee set School_fee=%s where Gr_no=%s"
+                        cur.execute(q2,t)
+                        con.commit()
+                    def transport_fee(no):
+                        tran_fee=float(input("Enter the transport fee to be updated to [xxx.xx]:"))
+                        print('')
+                        t=(tran_fee,no)
+                        q3="update stu_fee set Transport_fee=%s where Gr_no=%s"
+                        cur.execute (q3,t)
+                        cur.commit()
+                    t=(no,)
+                    q="select * from stu_fee where Gr_no=%s"
+                    cur.execute(q,t)
+                    res=cur.fetchall()
+                    s=res[2]+res[3]
+                    ts=(s,no)
+                    a="update stu_fee set Total_fee where Gr_no=%s"
+                    cur.execute(a,ts)
+                    con.commit()
+                    if choice==1:
+                        month(no)
+                    elif choice==2:
+                        school_fee(no)
+                    elif choice==3:
+                        transport_fee(no)
+                    elif choice==4:
+                        main()
+                    else:
+                        print('Invalid choice!!')
+                        update_fee()
+                ch=input("Do you wish to continue updating student's fee. Enter [Y/y] for yes and [N/n] for no:")
+                if ch=='Y' or ch=='y':
+                    update_fee()
+                elif ch=='N' or ch=='n':
+                    main()
+                else:
+                    print('Invalid choice!!')
+                    main()
+            except:
+                print('Error')
+            main()
+            
+        #UPDATE STUDENT REPORT
+        
+        def update_report():
+            print('')
+            print('\t\t\t\t\t ---------------------------- ')
+            print('\t\t\t\t\t|                            |')
+            print("\t\t\t\t\t|       1.UPDATE MARKS       |")
+            print("\t\t\t\t\t|                            |")
+            print("\t\t\t\t\t|       2.UPDATE GRADE       |")
+            print("\t\t\t\t\t|                            |")
+            print("\t\t\t\t\t|         3.MAIN MENU        |")
+            print("\t\t\t\t\t|                            |")
+            print('\t\t\t\t\t ---------------------------- ')
+            print('')
+            choice=int(input("Enter an option: "))
+            if choice==1:
+                print('')
+                print('\t\t\t\t\t -------------------------------------- ')
+                print('\t\t\t\t\t|                                      |')
+                print("\t\t\t\t\t|    UPDATE MARKS FOR WHICH SUBJECT    |")
+                print("\t\t\t\t\t|                                      |")
+                print("\t\t\t\t\t|                1.PHYSICS             |")
+                print("\t\t\t\t\t|                                      |")
+                print("\t\t\t\t\t|               2.CHEMISTRY            |")
+                print("\t\t\t\t\t|                                      |")
+                print("\t\t\t\t\t|                3.BIOLOGY             |")
+                print("\t\t\t\t\t|                                      |")
+                print("\t\t\t\t\t|            4.COMPUTER SCIENCE        |")
+                print("\t\t\t\t\t|                                      |")
+                print("\t\t\t\t\t|                5.ENGLISH             |")
+                print("\t\t\t\t\t|                                      |")
+                print("\t\t\t\t\t|                  6.BACK              |")
+                print("\t\t\t\t\t|                                      |")
+                print('\t\t\t\t\t -------------------------------------- ')
+                print("")
+                val=int(input("Enter an option: "))
+                print('')
+                if val==1:
+                    cur=con.cursor()
+                    gr=int(input("Enter the Gr_no:"))
+                    print('')
+                    marks=float(input("Enter the marks for Physics [xxx.xx]:"))
+                    print('')
+                    qu='UPDATE mainsub_report set Physics=%s where Gr_no=%s'
+                    t=(marks,gr)
+                    cur.execute(qu,t)
+                    tu=(gr,)
+                    q='select * from mainsub_report where Gr_no=%s'
+                    cur.execute(q,tu)
+                    r=cur.fetchall()
+                    for i in r:
+                        tot=i[1]+i[2]+i[3]+i[4]+i[5]
+                        avg=tot/5
+                        g=''
+                        if avg >= 90.00:
+                            g='A'
+                        elif avg >= 70.00 and avg < 90.00:
+                            g='B'
+                        elif avg >= 50.00 and avg < 70.00:
+                            g='C'
+                        elif avg >= 30.00 and avg < 50.00:
+                            g='D'
+                        elif avg >= 23.50 and avg < 30.00:
+                            g='E'
+                        else:
+                            g='F'
+                        to=(tot,)
+                        av=(avg,)
+                        cur=con.cursor()
+                        total="UPDATE mainsub_report set Total_marks=%s where Gr_no=%s"
+                        cur.execute(total,to)
+                        con.commit()
+                        cur=con.cursor()
+                        average="UPDATE mainsub_report set Average_marks=%s where Gr_no=%s"
+                        cur.execute(average,av)
+                        con.commit()
+                        cur=con.cursor()
+                        qur='UPDATE mainsub_report set Grade=%s where Gr_no=%s'
+                        t=(g,gr)
+                        cur.execute(qur,t)
+                        con.commit()
+                elif val==2:
+                    gr=int(input("Enter the Gr_no:"))
+                    print('')
+                    qu='UPDATE mainsub_report set Chemistry=%s'
+                    marks=float(input("Enter the marks for Chemistry [xxx.xx]:"))
+                    print('')
+                    t=(marks,)
+                    cur.execute(qu,t)
+                    con.commit()
+                    r=cur.fetchall()
+                    for i in r:
+                        tot=i[1]+i[2]+i[3]+i[4]+i[5]
+                        avg=tot/5
+                        g=''
+                        if avg >= 90.00:
+                            g='A'
+                        elif avg >= 70.00 and avg < 90.00:
+                            g='B'
+                        elif avg >= 50.00 and avg < 70.00:
+                            g='C'
+                        elif avg >= 30.00 and avg < 50.00:
+                            g='D'
+                        elif avg >= 23.50 and avg < 30.00:
+                            g='E'
+                        else:
+                            g='F'
+                        to=(tot,)
+                        av=(avg,)
+                        cur=con.cursor()
+                        total="UPDATE mainsub_report set Total_marks=%s where Gr_no=%s"
+                        cur.execute(total,to)
+                        con.commit()
+                        cur=con.cursor()
+                        average="UPDATE mainsub_report set Average_marks=%s where Gr_no=%s"
+                        cur.execute(average,av)
+                        con.commit()
+                        cur=con.cursor()
+                        qur='UPDATE mainsub_report set Grade=%s where Gr_no=%s'
+                        to=(g,gr)
+                        cur.execute(qur,to)
+                        con.commit()
+                elif val==3:
+                    gr=int(input("Enter the Gr_no:"))
+                    print('')
+                    qu='UPDATE mainsub_report set Biology=%s'
+                    marks=float(input("Enter the marks for Biology [xxx.xx]:"))
+                    print('')
+                    t=marks,
+                    cur.execute(qu,t)
+                    con.commit()
+                    r=cur.fetchall()
+                    for i in r:
+                        tot=i[1]+i[2]+i[3]+i[4]+i[5]
+                        avg=tot/5
+                        g=''
+                        if avg >= 90.00:
+                            g='A'
+                        elif avg >= 70.00 and avg < 90.00:
+                            g='B'
+                        elif avg >= 50.00 and avg < 70.00:
+                            g='C'
+                        elif avg >= 30.00 and avg < 50.00:
+                            g='D'
+                        elif avg >= 23.50 and avg < 30.00:
+                            g='E'
+                        else:
+                            g='F'
+                        to=(tot,)
+                        av=(avg,)
+                        cur=con.cursor()
+                        total="UPDATE mainsub_report set Total_marks=%s where Gr_no=%s"
+                        cur.execute(total,to)
+                        con.commit()
+                        cur=con.cursor()
+                        average="UPDATE mainsub_report set Average_marks=%s where Gr_no=%s"
+                        cur.execute(average,av)
+                        con.commit()
+                        cur=con.cursor()
+                        qur='UPDATE mainsub_report set Grade=%s where Gr_no=%s'
+                        to=(g,gr)
+                        cur.execute(qur,to)
+                        con.commit()
+                elif val==4:
+                    gr=int(input("Enter the Gr_no:"))
+                    print('')
+                    qu='UPDATE mainsub_report set Computer_Science=%s'
+                    marks=float(input("Enter the marks for Computer Science [xxx.xx]:"))
+                    print('')
+                    t=marks,
+                    cur.execute(qu,t)
+                    con.commit()
+                    r=cur.fetchall()
+                    for i in r:
+                        tot=i[1]+i[2]+i[3]+i[4]+i[5]
+                        avg=tot/5
+                        g=''
+                        if avg >= 90.00:
+                            g='A'
+                        elif avg >= 70.00 and avg < 90.00:
+                            g='B'
+                        elif avg >= 50.00 and avg < 70.00:
+                            g='C'
+                        elif avg >= 30.00 and avg < 50.00:
+                            g='D'
+                        elif avg >= 23.50 and avg < 30.00:
+                            g='E'
+                        else:
+                            g='F'
+                        to=(tot,)
+                        av=(avg,)
+                        cur=con.cursor()
+                        total="UPDATE mainsub_report set Total_marks=%s where Gr_no=%s"
+                        cur.execute(total,to)
+                        con.commit()
+                        cur=con.cursor()
+                        average="UPDATE mainsub_report set Average_marks=%s where Gr_no=%s"
+                        cur.execute(average,av)
+                        con.commit()
+                        cur=con.cursor()
+                        qur='UPDATE mainsub_report set Grade=%s where Gr_no=%s'
+                        to=(g,gr)
+                        cur.execute(qur,to)
+                        con.commit()
+                elif val==5:
+                    gr=int(input("Enter the Gr_no:"))
+                    print('')
+                    qu='UPDATE mainsub_report set English=%s'
+                    marks=float(input("Enter the marks for English [xxx.xx]:"))
+                    print('')
+                    t=(marks,)
+                    cur.execute(qu,t)
+                    con.commit()
+                    r=cur.fetchall()
+                    for i in r:
+                        tot=i[1]+i[2]+i[3]+i[4]+i[5]
+                        avg=tot/5
+                        g=''
+                        if avg >= 90.00:
+                            g='A'
+                        elif avg >= 70.00 and avg < 90.00:
+                            g='B'
+                        elif avg >= 50.00 and avg < 70.00:
+                            g='C'
+                        elif avg >= 30.00 and avg < 50.00:
+                            g='D'
+                        elif avg >= 23.50 and avg < 30.00:
+                            g='E'
+                        else:
+                            g='F'
+                        to=(tot,)
+                        av=(avg,)
+                        cur=con.cursor()
+                        total="UPDATE mainsub_report set Total_marks=%s where Gr_no=%s"
+                        cur.execute(total,to)
+                        con.commit()
+                        cur=con.cursor()
+                        average="UPDATE mainsub_report set Average_marks=%s where Gr_no=%s"
+                        cur.execute(average,av)
+                        con.commit()
+                        cur=con.cursor()
+                        qur='UPDATE mainsub_report set Grade=%s where Gr_no=%s'
+                        to=(g,gr)
+                        cur.execute(qur,to)
+                        con.commit()
+                elif val==6:
+                    update_report()
+                else:
+                    print("Enter a valid choice")
+                    option=input("Do you want to continue [y/n]:")
+                    if option=='Y' or option=='y':
+                        update_report()
+                    elif option=='N' or option=='n':
+                        main()
+                    else:
+                        print('Invalid option')
+                        main()
+                cur=con.cursor()
+                res=cur.fetchall()
+                for i in res:
+                    tot=i[1]+i[2]+i[3]+i[4]+i[5]
+                    total=(tot,)
+                    cur=con.cursor()
+                    s='UPDATE mainsub_report set Total_marks=%s'
+                    cur.execute(s,total)
+                    con.commit()    
+            if choice==2:
+                print('')
+                print('\t\t\t\t\t -------------------------- ')
+                print('\t\t\t\t\t|                          |')
+                print("\t\t\t\t\t|        1.GRADE='A'       |")
+                print("\t\t\t\t\t|                          |")
+                print("\t\t\t\t\t|        2.GRADE='B'       |")
+                print("\t\t\t\t\t|                          |")
+                print("\t\t\t\t\t|        3.GRADE='C'       |")
+                print("\t\t\t\t\t|                          |")
+                print("\t\t\t\t\t|        4.GARDE='D'       |")
+                print("\t\t\t\t\t|                          |")
+                print("\t\t\t\t\t|        5.GRADE='E'       |")
+                print("\t\t\t\t\t|                          |")
+                print("\t\t\t\t\t|        6.GRADE='F'       |")
+                print("\t\t\t\t\t|                          |")
+                print("\t\t\t\t\t|          7.BACK          |")
+                print("\t\t\t\t\t|                          |")
+                print('\t\t\t\t\t -------------------------- ')
+                print("")
+                val=int(input("Enter an option: "))
+                print('')
+                if val==1:
+                    gr=int(input("Enter the Gr_no:"))
+                    print('')
+                    qu='UPDATE mainsub_report set Grade=%s where Gr_no=%s'
+                    gr=int(input("Enter the Gr_no: "))
+                    print('')
+                    t=('A',gr)
+                    cur.execute(qu,t)
+                    con.commit()
+                elif val==2:
+                    gr=int(input("Enter the Gr_no:"))
+                    print('')
+                    qu='UPDATE mainsub_report set Grade=%s where Gr_no=%s'
+                    gr=int(input("Enter the Gr_no: "))
+                    print('')
+                    t=('B',gr)
+                    cur.execute(qu,t)
+                    con.commit()
+                elif val==3:
+                    gr=int(input("Enter the Gr_no:"))
+                    print('')
+                    qu='UPDATE mainsub_report set Grade=%s where Gr_no=%s'
+                    gr=int(input("Enter the Gr_no: "))
+                    print('')
+                    t=('C',gr)
+                    cur.execute(qu,t)
+                    con.commit()
+                elif val==4:
+                    gr=int(input("Enter the Gr_no:"))
+                    print('')
+                    qu='UPDATE mainsub_report set Grade=%s where Gr_no=%s'
+                    gr=int(input("Enter the Gr_no: "))
+                    print('')
+                    t=('D',gr)
+                    cur.execute(qu,t)
+                    con.commit()
+                elif val==5:
+                    gr=int(input("Enter the Gr_no:"))
+                    print('')
+                    qu='UPDATE mainsub_report set Grade=%s where Gr_no=%s'
+                    gr=int(input("Enter the Gr_no: "))
+                    print('')
+                    t=('E',gr)
+                    cur.execute(qu,t)
+                    con.commit()
+                elif val==6:
+                    gr=int(input("Enter the Gr_no:"))
+                    print('')
+                    qu='UPDATE mainsub_report set Grade=%s where Gr_no=%s'
+                    gr=int(input("Enter the Gr_no: "))
+                    print('')
+                    t=('F',gr)
+                    cur.execute(qu,t)
+                    con.commit()
+                elif val==7:
+                    update_report()
+                else:
+                    print("Enter a valid choice")
+                    option=input("Do you want to continue [y/n]:")
+                    if option=='Y' or option=='y':
+                        update_report()
+                    else:
+                        main()
+            else:
+                print("Enter a valid choice")
+                option=input("Do you want to continue [y/n]:")
+                if option=='Y' or option=='y':
+                    update_report()
+                else:
+                    main()
+                
+        #ADD STUDENT FEE
+        
+        def add_fee():
+            print('')
+            cur=con.cursor()
+            while True:
+                gr=int(input("Enter the Gr_no:"))
+                print('')
+                g=(gr,)
+                s="select * from stu_fee where Gr_no=%s"
+                cur.execute(s,g)
+                res=cur.fetchall()
+                if cur.rowcount!=0:
+                    print('This Gr_no have been added before')
+                    break
+                else:
+                    month=input("Enter the Month of the fees to be added: ")
+                    print('')
+                    transport=float(input("Enter bus fee [if private =>0.00] [xxx.xx]: "))
+                    print('')
+                    school=float(input("Enter school fee [xxx.xx]:"))
+                    print('')
+                    total=(transport+school)
+                    t=(gr,month,transport,school,total)
+                    sql="insert into stu_fee values (%s,%s,%s,%s,%s)"
+                    cur.execute(sql,t)
+                    con.commit()
+                    print("Student's fee is entered")
+                    ch=input("Do you wish to continue adding student's fee. Enter [Y/y] for yes and [N/n] for no:")
+                    if ch=='Y' or ch=='y':
+                        continue
+                    elif ch=='N' or ch=='n':
+                        main()
+                    else:
+                        print('Envalid choice!!')
+                        main()
+            main()
+        
+        #ADD STUDENT ATTENDANCE
+            
+        def add_studattend():
+            from datetime import date
+            cur=con.cursor()
+            print('')
+            while True:
+                no=int(input("Enter student's Gr.number:"))
+                print('')
+                g=(no,)
+                s="select * from stu_attendance where Gr_no=%s"
+                cur.execute(s,g)
+                res=cur.fetchall()
+                if cur.rowcount!=0:
+                    print('This Gr_no have been added before')
+                    break
+                else:
+                    d=date.today()
+                    print('')
+                    status=input("Enter the status [Absent/Present]:")
+                    print('')
+                    t=(no,d,status)
+                    q='insert into stu_attendance (Gr_no,Date,Status) values(%s,%s,%s)'
+                    cur.execute(q,t)
+                    con.commit()
+                    print("Student's attendance is entered")
+                    ch=input("Do you wish to continue adding student's attendance. Enter [Y/y] for yes and [N/n] for no:")
+                    if ch=='Y' or ch=='y':
+                        add_studattend()
+                    elif ch=='N' or ch=='n':
+                        main()
+                    else:
+                        print('Envalid choice!!')
+                        main()
+            main()
+            
+        #SEARCH STUDENT DETAIL 
+        
+        def search_student_detail():          
+            cur=con.cursor()
+            print('')
+            try:
+                gr=int(input("Enter the Gr.no. to be searched: "))
+                print('')
+                t=(gr,)
+                qu='select * from student where Gr_no=%s'
+                cur.execute(qu,t)
+                res=cur.fetchall()
+                if cur.rowcount==0:
+                    print("The student detail's of the Gr.no ",gr," have not been entered")
+                    print('')
+                else:
+                    headers=["Name","Gr no","Class","Transport","DOB","CPR","phone number"]
+                    print(tabulate(res,headers,tablefmt="pretty"))
+                    main()
+            except:
+                print('Error')
+            main()
+        
+        #STUDENT MAIN SUBJECT REPORT
+        
+        def mainsub_report():
+            print('')
+            cur=con.cursor()
+            while True:
+                gr=int(input("Enter the Gr_no of the student: "))
+                print('')
+                g=(gr,)
+                s="select * from mainsub_report where Gr_no=%s"
+                cur.execute(s,g)
+                res=cur.fetchall()
+                if cur.rowcount!=0:
+                    print('This Gr_no have been added before')
+                    break
+                else:
+                    phy=float(input("Enter marks for Physics [marks-xxx.xx]: "))
+                    print('')
+                    bio=float(input("Enter marks for Biology [marks-xxx.xx]: "))
+                    print('')
+                    chem=float(input("Enter marks for Chemistry [marks-xxx.xx]: "))
+                    print('')
+                    cs=float(input("Enter marks for Computer Science [marks-xxx.xx]: "))
+                    print('')
+                    eng=float(input("Enter marks for English [marks-xxx.xx]: "))
+                    print('')
+                    tot=(phy+bio+chem+cs+eng)
+                    avg=tot/5
+                    g=''
+                    if avg >= 90.00:
+                        g='A'
+                    elif avg >= 70.00 and avg < 90.00:
+                        g='B'
+                    elif avg >= 50.00 and avg < 70.00:
+                        g='C'
+                    elif avg >= 30.00 and avg < 50.00:
+                        g='D'
+                    elif avg >= 23.50 and avg < 30.00:
+                        g='E'
+                    else:
+                        g='F'
+                    cur=con.cursor()
+                    t=(gr,phy,bio,chem,cs,eng,tot,avg,g)
+                    qu='insert into mainsub_report values (%s,%s,%s,%s,%s,%s,%s,%s,%s)'
+                    cur.execute(qu,t)
+                    con.commit()
+                    print("Student's report is entered")
+                    ch=input("Do you wish to continue adding student's report. Enter [Y/y] for yes and [N/n] for no:")
+                    if ch=='Y' or ch=='y':
+                        mainsub_report()
+                    elif ch=='N' or ch=='n':
+                        main()
+                    else:
+                        print('Envalid choice!!')
+                        main()
+            main()
+                
+        #DISPLAY STUDENT DETAILS
+        
+        def display_studdetails():
+            print('')
+            print('\t\t\t\t\t\t ------------------------------')
+            print('\t\t\t\t\t\t|                              |')
+            print('\t\t\t\t\t\t|     1.ALL STUDENT DETAILS    |')
+            print('\t\t\t\t\t\t|                              |')
+            print('\t\t\t\t\t\t| 2.PARTICULAR STUDENT DETAILS |')
+            print('\t\t\t\t\t\t|                              |')
+            print('\t\t\t\t\t\t|          3.MAIN MENU         |')
+            print('\t\t\t\t\t\t|                              |')
+            print('\t\t\t\t\t\t ------------------------------')
+            print('')
+            choice=int(input('Enter a choice:'))
+            try:
+                if choice==1:
+                    cur=con.cursor()
+                    q='select * from student'
+                    cur.execute(q)
+                    res=cur.fetchall()
+                    headers=['Name','Gr no','Class','Transport','DOB','CPR','Phone number']
+                    print(tabulate(res,headers,tablefmt="pretty"))
+                    main()
+                elif choice==2:
+                    gr=input("Enter the Gr_no. ")
+                    print('')
+                    t=(gr,)
+                    qu='select * from student where Gr_no=%s'
+                    cur=con.cursor()
+                    cur.execute(qu,t)
+                    res=cur.fetchall()
+                    if cur.rowcount==0:
+                        print("The student detail's of the Gr.no",gr,"is not entered")
+                        main()
+                    else:
+                        headers=["Name","Gr no","Class","Transport","DOB","CPR","phone number"]
+                        print(tabulate(res,headers,tablefmt="pretty"))
+                        main()
+                elif choice==3:
+                    main()
+                else:
+                    print('Invalid choice')
+                    main()
+            except:
+                print('Error')
+            main()
+        
+        #DISPLAY STUDENT ATTENDANCE
+        
+        def display_studattendance():
+            print('')
+            try:
+                q='select * from stu_attendance where Gr_no=%s'
+                num=int(input("Enter student's Gr_no:"))
+                print('')
+                t=(num,)
+                cur=con.cursor()
+                cur.execute(q,t)
+                res=cur.fetchall()
+                if cur.rowcount==0:
+                    print("The student detail's of the Gr.no",num,"is not entered")
+                    main()
+                else:
+                    headers=["Gr no","Date","Status"]
+                    print(tabulate(res,headers,tablefmt="pretty"))
+                    main()
+            except:
+                print('Error')
+            main()
+        
+        #DISPLAY STUDENT FEE
+        def display_studfee():          
+            cur=con.cursor()
+            print('')
+            try:
+                g=int(input("Enter the student's Gr.number: "))
+                print('')
+                qu="select * from stu_fee where Gr_no=%s"
+                t=(g,)
+                cur.execute(qu,t)
+                res=cur.fetchall()
+                if cur.rowcount==0:
+                    print("The student detail's of the Gr.no",g,"is not entered")
+                    main()
+                else:
+                    headers=["Gr no","Month","Transport fee","School fee","Total fee"]
+                    print(tabulate(res,headers,tablefmt="pretty"))
+                    main()
+            except:
+                print('Error')
+            main()
+        
+        #DISPLAY STUDENT MAIN SUBJECT REPORT
+            
+        def display_mainsub_report():   
+            cur=con.cursor()
+            print('')
+            try:
+                gr=int(input("Enter the Gr_no of the student: "))
+                print('')
+                qu="select * from mainsub_report where Gr_no=%s"
+                t=(gr,)
+                cur.execute(qu,t)
+                res=cur.fetchall()
+                if cur.rowcount==0:
+                    print("The student detail's of the Gr.no",gr,"is not entered")
+                    main()
+                else:
+                    headers=["Gr no","Physics","Biology","Chemistry","Computer Science","English","Total marks","Average marks","Grade"]
+                    print(tabulate(res,headers,tablefmt="pretty"))
+                    main()
+            except:
+                print('Error')
+            main()
+        
+        #MENU SCREEN
+        
+        def main():
+            print('\t\t\t\t\t ---------------------------------------- ')
+            print('\t\t\t\t\t|                                        |')
+            print('\t\t\t\t\t|  THE INDIAN SCHOOL KINGDOM OF BAHRAIN  |')
+            print('\t\t\t\t\t|                                        |')
+            print('\t\t\t\t\t|                                        |')
+            print('\t\t\t\t\t|         1.ADD STUDENT DETAILS          |')
+            print('\t\t\t\t\t|                                        |')
+            print('\t\t\t\t\t|       2.REMOVE STUDENT DETAILS         |')
+            print('\t\t\t\t\t|                                        |')
+            print('\t\t\t\t\t|       3.UPDATE STUDENT DETAILS         |')
+            print('\t\t\t\t\t|                                        |')
+            print('\t\t\t\t\t|        4.ATTENDANCE OF STUDENT         |')
+            print('\t\t\t\t\t|                                        |')
+            print("\t\t\t\t\t|            5.STUDENT'S FEE             |")
+            print('\t\t\t\t\t|                                        |')
+            print('\t\t\t\t\t|       6.SEARCH STUDENT DETAILS         |')
+            print('\t\t\t\t\t|                                        |')
+            print('\t\t\t\t\t|          7.STUDENT MARKSHEET           |')
+            print('\t\t\t\t\t|                                        |')
+            print('\t\t\t\t\t|               8.DISPLAY                |')
+            print('\t\t\t\t\t|                                        |')
+            print('\t\t\t\t\t|                9.EXIT                  |')
+            print('\t\t\t\t\t|                                        |')
+            print('\t\t\t\t\t ---------------------------------------- ')
+            print('')
+            option=int(input("Enter an option:"))
+            if option==1:
+                   print('\t\t\t\t\t ----------------------- ')
+                   print('\t\t\t\t\t|                       |')
+                   print('\t\t\t\t\t| 1.ADD STUDENT DETAILS |')
+                   print('\t\t\t\t\t|                       |')
+                   print('\t\t\t\t\t|      2.MAIN MENU      |')
+                   print('\t\t\t\t\t|                       |')
+                   print('\t\t\t\t\t ----------------------- ')
+                   print('')
+                   choice=int(input("Enter a choice:"))
+                   if choice==1:
+                       add_student()
+                   elif choice==2:
+                       main()
+                   else:
+                       print("Enter a valid choice")
+                       main()
+            elif option==2:
+                   print('\t\t\t\t\t ------------------------- ')
+                   print('\t\t\t\t\t|                          |')
+                   print('\t\t\t\t\t| 1.REMOVE STUDENT DETAILS |')
+                   print('\t\t\t\t\t|                          |')
+                   print('\t\t\t\t\t|        2.MAIN MENU       |')
+                   print('\t\t\t\t\t|                          |')
+                   print('\t\t\t\t\t -------------------------- ')
+                   print('')
+                   choice=int(input("Enter a choice:"))
+                   if choice==1:
+                       remove_student()
+                   elif choice==2:
+                       main()
+                   else:
+                       print("Enter a valid choice")
+                       main()
+            elif option==3:
+                   print('\t\t\t\t\t --------------------------------- ')
+                   print('\t\t\t\t\t|                                 |')
+                   print('\t\t\t\t\t|      1.STUDENT NAME UPDATE      |')
+                   print('\t\t\t\t\t|                                 |')
+                   print('\t\t\t\t\t|     2.UPDATE STUDENT CLASS      |')
+                   print('\t\t\t\t\t|                                 |')
+                   print('\t\t\t\t\t| 3.UPDATE STUDENT TRANSPORTATION |')
+                   print('\t\t\t\t\t|                                 |')
+                   print('\t\t\t\t\t|       4.UPDATE STUDENT DOB      |')
+                   print('\t\t\t\t\t|                                 |')
+                   print('\t\t\t\t\t|  5.UPDATE STUDENT PHONE NUMBER  |')
+                   print('\t\t\t\t\t|                                 |')
+                   print('\t\t\t\t\t|   6.UPDATE STUDENT CPR NUMBER   |')  
+                   print('\t\t\t\t\t|                                 |')
+                   print('\t\t\t\t\t|            7.MAIN MENU          |')
+                   print('\t\t\t\t\t|                                 |')
+                   print('\t\t\t\t\t --------------------------------- ')
+                   print('')
+                   choice=int(input("Enter a choice:"))
+                   if choice==1:
+                       stud_name()
+                   elif choice==2:
+                       stud_class()
+                   elif choice==3:
+                       stud_transport()
+                   elif choice==4:
+                       stud_DOB()
+                   elif choice==5:
+                       stud_phonenum()
+                   elif choice==6:
+                       stud_cpr()
+                   elif choice==7:
+                       main()
+                   else:
+                       print("Enter a valid choice")
+                       main()
+            elif option==4:
+                   print('\t\t\t\t\t\t ----------------------------- ')
+                   print('\t\t\t\t\t\t|                             |')
+                   print('\t\t\t\t\t\t|   1.ADD STUDENT ATTENDANCE  |')
+                   print('\t\t\t\t\t\t|                             |')
+                   print('\t\t\t\t\t\t| 2.UPDATE STUDENT ATTENDANCE |')
+                   print('\t\t\t\t\t\t|                             |')
+                   print('\t\t\t\t\t\t|         3.MAIN MENU         |')
+                   print('\t\t\t\t\t\t|                             |')
+                   print('\t\t\t\t\t\t ----------------------------- ')
+                   print('')
+                   choice=int(input("Enter a choice:"))
+                   if choice==1:
+                        add_studattend()
+                   elif choice==2:
+                        update_studattend()
+                   elif choice==3:
+                        main()
+                   else:
+                       print("Enter a valid choice")
+                       main()
+            elif option==5:
+                   print('\t\t\t\t\t\t ---------------------- ')
+                   print('\t\t\t\t\t\t|                      |')
+                   print('\t\t\t\t\t\t|       1.ADD FEE      |')
+                   print('\t\t\t\t\t\t|                      |')
+                   print('\t\t\t\t\t\t|     2.UPDATE FEE     |')
+                   print('\t\t\t\t\t\t|                      |')
+                   print('\t\t\t\t\t\t|      3.MAIN MENU     |')
+                   print('\t\t\t\t\t\t|                      |')
+                   print('\t\t\t\t\t\t ---------------------- ')
+                   print('')
+                   choice=int(input("Enter a choice:"))
+                   if choice==1:
+                       add_fee()
+                   elif choice==2:
+                       update_fee()
+                   elif choice==3:
+                       main()
+                   else:
+                       print("Enter a valid choice")
+                       main()
+            elif option==6:
+                   print('\t\t\t\t\t -------------------------- ')
+                   print('\t\t\t\t\t|                          |')
+                   print('\t\t\t\t\t| 1.SEARCH STUDENT DETAILS |')
+                   print('\t\t\t\t\t|                          |')
+                   print('\t\t\t\t\t|        2.MAIN MENU       |')
+                   print('\t\t\t\t\t|                          |')
+                   print('\t\t\t\t\t -------------------------- ')
+                   print('')
+                   choice=int(input("Enter a choice:"))
+                   if choice==1:
+                       search_student_detail()
+                   elif choice==2:
+                       main()
+                   else:
+                       print("Enter a valid choice")
+                       main()
+            elif option==7:
+                   print('\t\t\t\t\t ------------------------ ')
+                   print('\t\t\t\t\t|                         |')
+                   print('\t\t\t\t\t|  1.MAIN SUBJECT REPORT  |')
+                   print('\t\t\t\t\t|                         |')
+                   print('\t\t\t\t\t| 2.UPDATE STUDENT REPORT |')
+                   print('\t\t\t\t\t|                         |')
+                   print('\t\t\t\t\t|       3.MAIN MENU       |')
+                   print('\t\t\t\t\t|                         |')
+                   print('\t\t\t\t\t ------------------------- ')
+                   print('')
+                   choice=int(input("Enter a choice:"))
+                   if choice==1:
+                       mainsub_report()
+                   elif choice==2:
+                       update_report()
+                   elif choice==3:
+                       main()
+                   else:
+                       print("Enter a valid choice")
+                       main()
+            elif option==8:
+                   print('\t\t\t\t\t ------------------------------- ')
+                   print('\t\t\t\t\t|                               |')
+                   print('\t\t\t\t\t|   1.DISPLAY STUDENT DETAILS   |')
+                   print('\t\t\t\t\t|                               |')
+                   print('\t\t\t\t\t|  2.DISPLAY STUDENT ATTENDANCE |')
+                   print('\t\t\t\t\t|                               |')
+                   print('\t\t\t\t\t|         3.DISPLAY FEE         |')
+                   print('\t\t\t\t\t|                               |')
+                   print('\t\t\t\t\t| 4.DISPLAY MAIN SUBJECT REPORT |')
+                   print('\t\t\t\t\t|                               |')
+                   print('\t\t\t\t\t|          5.MAIN MENU          |')
+                   print('\t\t\t\t\t|                               |')
+                   print('\t\t\t\t\t ------------------------------- ')
+                   print('')
+                   choice=int(input("Enter a choice:"))
+                   if choice==1:
+                       display_studdetails()
+                   elif choice==2:
+                       display_studattendance()
+                   elif choice==3:
+                       display_studfee()
+                   elif choice==4:
+                       display_mainsub_report()
+                   elif choice==5:
+                       main()
+                   else:
+                       print("Enter a valid choice")
+                       main()
+            elif option==9:
+                   print("Thank you have a nice day ahead !")
+            else:
+                   print("Enter a valid choice")
+                   
+        main()
+    </code></pre>
+  </div>
+</body>
+</html>
